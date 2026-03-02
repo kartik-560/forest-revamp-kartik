@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\PatrolController;
@@ -14,6 +16,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AuthController;
 
 /* Auth Routes */
+
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
@@ -43,18 +46,18 @@ Route::middleware(['auth'])->group(function () {
     /* Executive Analytics */
     Route::get('/analytics/executive', [ExecutiveAnalyticsController::class, 'executiveDashboard'])->name('analytics.executive');
     Route::get('/analytics/executive/api/kpis', [ExecutiveAnalyticsController::class, 'getKPIsApi'])->name('analytics.executive.api.kpis');
-    
+
     /* Debug Route - Remove in production */
-    Route::get('/debug/db-test', function() {
+    Route::get('/debug/db-test', function () {
         try {
             $pdo = DB::connection()->getPdo();
             $user = session('user');
             $companyId = ($user && isset($user->company_id)) ? $user->company_id : 56;
-            
+
             $usersCount = DB::table('users')->where('company_id', $companyId)->count();
             $sitesCount = DB::table('site_details')->where('company_id', $companyId)->count();
             $patrolsCount = DB::table('patrol_sessions')->where('company_id', $companyId)->count();
-            
+
             return response()->json([
                 'status' => 'success',
                 'database' => 'connected',
@@ -77,7 +80,6 @@ Route::middleware(['auth'])->group(function () {
     /* Attendance */
     Route::prefix('attendance')->group(function () {
         Route::get('/summary', [AttendanceController::class, 'summary']);
-
     });
 
 
@@ -108,7 +110,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/filters/users', [FilterController::class, 'users']);
     Route::get('/filters/guards/autocomplete', [FilterController::class, 'guardAutocomplete']);
     Route::get('/filters/compartments/{beat}', [FilterController::class, 'compartments']);
-    
+
     /* KPI Modal API Routes */
     Route::get('/api/active-guards', [ExecutiveAnalyticsController::class, 'getActiveGuards']);
     Route::get('/api/beats-details', [ExecutiveAnalyticsController::class, 'getBeatsDetails']);
